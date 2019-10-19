@@ -53,10 +53,11 @@ def write_to_exchange(exchange, obj):
     exchange.write("\n")
 
 def read_from_exchange(exchange):
-    msg = json.loads(exchange.readline())
-    lock_list()
-    msg_list.append(msg)
-    unlock_list()
+    while True:
+        msg = json.loads(exchange.readline())
+        lock_list()
+        msg_list.append(msg)
+        unlock_list()
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
