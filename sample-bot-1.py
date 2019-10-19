@@ -124,6 +124,7 @@ def main():
         base = 1000
         min_seller = 1000000
         max_buyer = 0
+        stocks_cnt = {"ALI": selling_stocks["ALI"], "TCT": selling_stocks["TCT"], "BDU": selling_stocks["BDU"]}
         for msg in msg_list:
             if "type" in msg and msg["type"] == "book":
                 min_seller = 1000000
@@ -151,7 +152,7 @@ def main():
                 if msg['symbol'] == "BDU" or msg["symbol"] == "ALI" or msg["symbol"] == "TCT":
                     if not market_price[msg["symbol"]]:
                         market_price[msg["symbol"]] = max_buyer * 0.98 + (min_seller - max_buyer) / 2
-                    cnt = selling_stocks[msg["symbol"]]
+                    cnt = stocks_cnt[msg["symbol"]]
 
                     for buy_info in msg["sell"]:
 
@@ -178,6 +179,7 @@ def main():
                     selling_stocks[msg["symbol"]] += processing_stocks[msg["symbol"]]["size"]
                 elif processing_stocks[msg["order_id"]]["dir"] == "BUY":
                     buying_stocks[msg["symbol"]] += processing_stocks[msg["symbol"]]["size"]
+                stocks_cnt[msg["symbol"]] = selling_stocks[msg["symbol"]]
 
             elif "type" in msg and msg["type"] == "FILL":
                 if processing_stocks[msg["order_id"]]["dir"] == "SELL":
@@ -188,6 +190,7 @@ def main():
                     market_price[msg["symbol"]] -= (min_seller - max_buyer) * 0.01
                 elif buying_stocks[msg["symbol"]] - selling_stocks[msg["symbol"]] > 5:
                     market_price[msg["symbol"]] += (min_seller - max_buyer) * 0.01
+                stocks_cnt[msg["symbol"]] = selling_stocks[msg["symbol"]]
                     
         msg_list.clear()
         unlock_list()
