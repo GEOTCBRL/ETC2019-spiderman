@@ -53,31 +53,10 @@ def write_to_exchange(exchange, obj):
     exchange.write("\n")
 
 def read_from_exchange(exchange):
-<<<<<<< HEAD
-    return json.loads(exchange.readline())
-
-# ~~~~~============== STRATEGY ===============~~~~~
-def parseBook(book):
-    maxBuyer = [0, 0]
-    minSeller = [10000000, 0]
-    if book.symbol == "BOND":
-        for buyer in book.buy:
-            if buyer[0] > maxBuyer[0]:
-                maxBuyer = buyer
-        for seller in book.sell:
-            if seller[0] < minSeller[0]:
-                minSeller = seller
-    return {
-        maxBuyer: maxBuyer,
-        minSeller: minSeller
-    }
-
-=======
     msg = json.loads(exchange.readline())
     lock_list()
     msg_list.append(msg)
     unlock_list()
->>>>>>> 78f98904660a2cc96d83d859d0380e49c06bcb35
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
