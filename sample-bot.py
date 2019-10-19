@@ -41,6 +41,22 @@ def write_to_exchange(exchange, obj):
 def read_from_exchange(exchange):
     return json.loads(exchange.readline())
 
+# ~~~~~============== STRATEGY ===============~~~~~
+def parseBook(book):
+    maxBuyer = [0, 0]
+    minSeller = [10000000, 0]
+    if book.symbol == "BOND":
+        for buyer in book.buy:
+            if buyer[0] > maxBuyer[0]:
+                maxBuyer = buyer
+        for seller in book.sell:
+            if seller[0] < minSeller[0]:
+                minSeller = seller
+    return {
+        maxBuyer: maxBuyer,
+        minSeller: minSeller
+    }
+
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
