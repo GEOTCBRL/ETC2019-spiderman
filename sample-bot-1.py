@@ -95,7 +95,7 @@ def add_item(symbol, dir, price, size):
     order_id += 1
     write_to_exchange(exchange, {"type": "add", "order_id": order_id, "symbol": symbol,
                                  "dir": dir, "price": price, "size": size})
-    processing_stocks[order_id] = {"symbol": symbol, "dir": dir}
+    processing_stocks[order_id] = {"symbol": symbol, "dir": dir, "size": size}
 
 pause_flag = False
 
@@ -150,14 +150,14 @@ def main():
                 
                 if msg['symbol'] == "BDU" or msg["symbol"] == "ALI" or msg["symbol"] == "TCT":
                     if not market_price[msg["symbol"]]:
-                        market_price[msg["symbol"]] = max_buyer * 0.98 + (min_seller - max_buyer) / 4
+                        market_price[msg["symbol"]] = max_buyer * 0.98 + (min_seller - max_buyer) / 2
                     for buy_info in msg["sell"]:
                         if selling_stocks[msg["symbol"]] > 20:
                             continue
                         if buy_info[0] < market_price[msg["symbol"]] - 2 * delta_for_stocks:
-                            add_item(msg["symbol"], "BUY", buy_info[0], buy_info[1])
+                            add_item(msg["symbol"], "BUY", buy_info[0], min(buy_info[1], 10))
                         else:
-                            add_item(msg["symbol"], "BUY", market_price[msg["symbol"]] - 2 * delta_for_stocks, buy_info[1])
+                            add_item(msg["symbol"], "BUY", market_price[msg["symbol"]] - 2 * delta_for_stocks, min(buy_info[1], 10))
                     for sell_info in msg["buy"]:
                         if buying_stocks[msg["symbol"]] > 20:
                             continue
@@ -168,15 +168,15 @@ def main():
                 
             elif "type" in msg and msg["type"] == "ACK":
                 if processing_stocks[msg["order_id"]]["dir"] == "SELL":
-                    selling_stocks[msg["symbol"]] += 1
+                    selling_stocks[msg["symbol"]] += processing_stocks[msg["symbol"]]["size"]
                 elif processing_stocks[msg["order_id"]]["dir"] == "BUY":
-                    buying_stocks[msg["symbol"]] += 1
+                    buying_stocks[msg["symbol"]] += processing_stocks[msg["symbol"]]["size"]
 
             elif "type" in msg and msg["type"] == "FILL":
                 if processing_stocks[msg["order_id"]]["dir"] == "SELL":
-                    selling_stocks[msg["symbol"]] -= 1
+                    selling_stocks[msg["symbol"]] -= processing_stocks[msg["symbol"]]["size"]
                 elif processing_stocks[msg["order_id"]]["dir"] == "BUY":
-                    buying_stocks[msg["symbol"]] -= 1
+                    buying_stocks[msg["symbol"]] -= processing_stocks[msg["symbol"]]["size"]
                 if selling_stocks[msg["symbol"]] - buying_stocks[msg["symbol"]] > 5:
                     market_price[msg["symbol"]] -= (min_seller - max_buyer) * 0.01
                 elif buying_stocks[msg["symbol"]] - selling_stocks[msg["symbol"]] > 5:
