@@ -151,13 +151,20 @@ def main():
                 if msg['symbol'] == "BDU" or msg["symbol"] == "ALI" or msg["symbol"] == "TCT":
                     if not market_price[msg["symbol"]]:
                         market_price[msg["symbol"]] = max_buyer * 0.98 + (min_seller - max_buyer) / 2
+                    cnt = selling_stocks[msg["symbol"]]
+
                     for buy_info in msg["sell"]:
-                        if selling_stocks[msg["symbol"]] > 20:
+
+                        if cnt > 20:
                             continue
                         if buy_info[0] < market_price[msg["symbol"]] - 2 * delta_for_stocks:
                             add_item(msg["symbol"], "BUY", buy_info[0], min(buy_info[1], 10))
+                            cnt += min(buy_info[1], 10)
                         else:
+
                             add_item(msg["symbol"], "BUY", market_price[msg["symbol"]] - 2 * delta_for_stocks, min(buy_info[1], 10))
+                            cnt += min(buy_info[1], 10)
+                            
                     for sell_info in msg["buy"]:
                         if buying_stocks[msg["symbol"]] > 20:
                             continue
