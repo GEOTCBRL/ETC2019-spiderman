@@ -143,6 +143,7 @@ def get_minmax():
 
 
 def handle_bond():
+    base = 1000
     for msg in msg_list:
         if msg['symbol'] == 'bond':
             for buy_info in msg['sell']:
@@ -181,7 +182,7 @@ def handle_fill(msg):
     if processing_stocks[t]["dir"] == "SELL":
         stock_cnt[symbol] -= processing_stocks[t]['size']
         selling_stocks[symbol] += processing_stocks[t]['size']
-    elif processing_stocks[_order_id]["dir"] == "BUY":
+    elif processing_stocks[t]["dir"] == "BUY":
         stock_cnt[symbol] += processing_stocks[t]["size"]
         buying_stocks[symbol] += processing_stocks[t]['size']
     r1, r2 = 0, 0
