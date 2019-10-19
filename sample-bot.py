@@ -62,10 +62,10 @@ def read_from_exchange(exchange):
             msg = json.loads(exchange.readline())
         except:
             continue
-        print(msg)
+        #print(msg)
         lock_list()
         msg_list.append(msg)
-        print("in read:", msg_list)
+        #print("in read:", msg_list)
         unlock_list()
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
@@ -79,15 +79,37 @@ def add_item(symbol, dir, price, size):
     write_to_exchange(exchange, {"type": "add", "order_id": order_id, "symbol": symbol,
                                  "dir": dir, "price": price, "size": size})
 
+pause_flag = False
+
+def read_from_os():
+    global pause_flag
+    while True:
+        s = input()
+        if s == "p":
+            pause_flag = True
+        if s == "c":
+            pause_flag = False
+
 def main():
     global exchange
     exchange = connect()
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
     _thread.start_new_thread(read_from_exchange, (exchange, ))
-    #current_msg.append(read_from_exchange(exhange))
+    _thread.start_new_thread(read_from_os)
+    round_cnt = 0
+    history_msg = []
     while True:
+        if pause_flag and len(history_msg) != 0:
+            print(history_msg)
+            history_msg.clear()
+        while pause_flag:
+            continue
         lock_list()
-        # print(msg_list)
+        round_cnt += 1
+        history_msg += msg_list
+        if round_cnt % 20 == 0:
+            print(history_msg)
+            history_msg = []
         base = 1000
         for msg in msg_list:
             if "type" in msg and msg["type"] == "book" and msg['symbol'] == 'BOND':
@@ -102,11 +124,6 @@ def main():
                     else:
                         add_item("BOND", "BUY", buy_info[0], buy_info[1])
                     add_item("BOND", "SELL", base, buy_info[1])
-                #for sell_info in msg['buy']:
-                #    if sell_info[0] <= base - delta:
-                #        add_item("BOND", "SELL", base - delta, sell_info[1])
-                #    else:
-                #        add_item('BOND', 'SELL', sell_info[0], sell_info[1])
         msg_list.clear()
         unlock_list()
 
