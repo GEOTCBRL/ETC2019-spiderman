@@ -135,17 +135,18 @@ def get_minmax():
     mn = pow(2, 30)
     mx = -mn
     for msg in msg_list:
-        for seller in msg['sell']:
-            mn = min(mn, seller[0])
-        for buyer in msg['buy']:
-            mx = max(mx, buyer[0])
+        if 'type' in msg and msg['type'] == 'book':
+            for seller in msg['sell']:
+                mn = min(mn, seller[0])
+            for buyer in msg['buy']:
+                mx = max(mx, buyer[0])
     return mn, mx
 
 
 def handle_bond():
     base = 1000
     for msg in msg_list:
-        if msg['symbol'] == 'bond':
+        if msg['symbol'] == 'BOND':
             for buy_info in msg['sell']:
                 if buy_info[0] < base:
                     add_item("BOND", "BUY", buy_info[0], buy_info[1])
@@ -158,19 +159,20 @@ stock_cnt_tmp = dict()
 def handle_stock(msg):
     symbol = msg['symbol']
     price = market_price[symbol]
-    for buy_info in msg['SELL']:
+    for buy_info in msg['sell']:
         if stock_cnt_tmp[symbol] > 20:
             break
         add_item(msg["symbol"], "BUY", min(price * rate, buy_info[0]), min(buy_info[1], 10))
         stock_cnt_tmp[symbol] += min(buy_info[1], 10)
-    for sell_info in msg['BUY']:
+    for sell_info in msg['buy']:
         add_item(symbol, 'SELL', max(sell_info[0], price), sell_info[1])
     market_price[symbol] = price
 
 
 def handle_ack(msg):
     _order_id = msg['order_id']
-    symbol = msg['symbol']
+    #symbol = msg['symbol']
+    symbol = processing_stocks['symbol']
     if processing_stocks[_order_id]["dir"] == "SELL":
         to_sell_stocks[symbol] += processing_stocks[_order_id]["size"]
     elif processing_stocks[_order_id]["dir"] == "BUY":
