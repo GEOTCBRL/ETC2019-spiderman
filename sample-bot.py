@@ -93,16 +93,17 @@ def main():
         for msg in msg_list:
             if "type" in msg and msg["type"] == "book" and msg['symbol'] == 'BOND':
                 for buy_info in msg['sell']:
-                    if buy_info[0] <= base - delta:
-                        add_item("BOND", "BUY", buy_info[0], buy_info[1])
+                    if buy_info[0] >= base + delta:
+                        add_item("BOND", "BUY", base + delta, buy_info[1])
                     else:
-                        add_item('BOND', 'BUY', base - delta, buy_info[1])
-                for sell_info in msg['buy']:
-                    if sell_info[0] >= base + delta:
-                        add_item("BOND", "SELL", sell_info[0], sell_info[1])
-                    else:
-                        add_item('BOND', 'SELL', base + delta, sell_info[1])
-
+                        add_item('BOND', 'BUY', buy_info[0], buy_info[1])
+                    add_item("BOND", "SELL", base + delta, buy_info[1])
+                #for sell_info in msg['buy']:
+                #    if sell_info[0] <= base - delta:
+                #        add_item("BOND", "SELL", base - delta, sell_info[1])
+                #    else:
+                #        add_item('BOND', 'SELL', sell_info[0], sell_info[1])
+        msg_list.clear()
         unlock_list()
 
 if __name__ == "__main__":
