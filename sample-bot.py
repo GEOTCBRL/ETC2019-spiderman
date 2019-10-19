@@ -10,6 +10,7 @@ from __future__ import print_function
 import sys
 import socket
 import json
+import _thread
 
 # ~~~~~============== CONFIGURATION  ==============~~~~~
 # replace REPLACEME with your team name!
@@ -28,6 +29,19 @@ prod_exchange_hostname="production"
 port=25000 + (test_exchange_index if test_mode else 0)
 exchange_hostname = "test-exch-" + team_name if test_mode else prod_exchange_hostname
 
+list_lock = False
+msg_list = []
+
+def lock_list():
+    global list_lock
+    while list_lock:
+        pass
+    list_lock = True
+
+def unlock_list():
+    global list_lock
+    list_lock = False
+
 # ~~~~~============== NETWORKING CODE ==============~~~~~
 def connect():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -39,6 +53,7 @@ def write_to_exchange(exchange, obj):
     exchange.write("\n")
 
 def read_from_exchange(exchange):
+<<<<<<< HEAD
     return json.loads(exchange.readline())
 
 # ~~~~~============== STRATEGY ===============~~~~~
@@ -57,19 +72,30 @@ def parseBook(book):
         minSeller: minSeller
     }
 
+=======
+    msg = json.loads(exchange.readline())
+    lock_list()
+    msg_list.append(msg)
+    unlock_list()
+>>>>>>> 78f98904660a2cc96d83d859d0380e49c06bcb35
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
 
 def main():
     exchange = connect()
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
-    # A common mistake people make is to call write_to_exchange() > 1
-    # time for every read_from_exchange() response.
-    # Since many write messages generate marketdata, this will cause an
-    # exponential explosion in pending messages. Please, don't do that!
-    write_to_exchange(exchange, {"type": "add", "order_id": 1000, "symbol": "ALI", "dir": "BUY", "price": 900, "size": 10})
-    reply_from_exchange = read_from_exchange(exchange)
-    print("The exchange replied:", reply_from_exchange, file=sys.stderr)
+    _thread.start_new_thread(read_from_exchange, (exchange))
+    #current_msg.append(read_from_exchange(exhange))
+    order_id = 0
+    while True:
+        # hello_from_exchange = read_from_exchange(exchange)
+        cmd = input()
+        if (cmd == 's'):
+            break
+        order_id += 1
+        lock_list()
+        print(msg_list)
+        unlock_list()
 
 if __name__ == "__main__":
     main()
