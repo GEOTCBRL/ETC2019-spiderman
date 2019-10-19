@@ -135,9 +135,9 @@ def get_minmax():
     mn = pow(2, 30)
     mx = -mn
     for msg in msg_list:
-        for seller in msg['seller']:
+        for seller in msg['sell']:
             mn = min(mn, seller[0])
-        for buyer in msg['buyer']:
+        for buyer in msg['buy']:
             mx = max(mx, buyer[0])
     return mn, mx
 
