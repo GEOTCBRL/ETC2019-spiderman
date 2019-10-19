@@ -82,7 +82,7 @@ def main():
     order_id = 0
     while True:
         # hello_from_exchange = read_from_exchange(exchange)
-        #cmd = input()
+        cmd = input()
         #if (cmd == 's'):
         #    break
         order_id += 1
@@ -94,14 +94,11 @@ def main():
             if "type" in msg and msg["type"] == "book" and msg['symbol'] == 'BOND':
                 for buy_info in msg['sell']:
                     if buy_info[0] <= base - delta:
-                        add_item("BOND", "BUY", buy_info[0], buy_info[1])
-                    else:
-                        add_item('BOND', 'BUY', base - delta, buy_info[1])
+                        #write_to_exchange(exhange, {"type": "add", "order_id": order_id})
+                        add_item("BOND", "BUY", base - delta, buy_info[1])
                 for sell_info in msg['buy']:
                     if sell_info[0] >= base + delta:
-                        add_item("BOND", "SELL", sell_info[0], sell_info[1])
-                    else:
-                        add_item('BOND', 'SELL', base + delta, sell_info[1])
+                        add_item("BOND", "SELL", base + delta, sell_info[1])
 
         unlock_list()
 
