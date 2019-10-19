@@ -17,7 +17,7 @@ import _thread
 team_name="SPIDERMAN"
 # This variable dictates whether or not the bot is connecting to the prod
 # or test exchange. Be careful with this switch!
-test_mode = False
+test_mode = True
 
 # This setting changes which test exchange is connected to.
 # 0 is prod-like
@@ -95,7 +95,7 @@ def main():
     exchange = connect()
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
     _thread.start_new_thread(read_from_exchange, (exchange, ))
-    _thread.start_new_thread(read_from_os)
+    _thread.start_new_thread(read_from_os, ())
     round_cnt = 0
     history_msg = []
     while True:
@@ -107,7 +107,7 @@ def main():
         lock_list()
         round_cnt += 1
         history_msg += msg_list
-        if round_cnt % 20 == 0:
+        if round_cnt % 20 == 0 and len(history_msg) != 0:
             print(history_msg)
             history_msg = []
         base = 1000
