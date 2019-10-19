@@ -17,13 +17,13 @@ import _thread
 team_name="SPIDERMAN"
 # This variable dictates whether or not the bot is connecting to the prod
 # or test exchange. Be careful with this switch!
-test_mode = True
+test_mode = False
 
 # This setting changes which test exchange is connected to.
 # 0 is prod-like
 # 1 is slower
 # 2 is empty
-test_exchange_index=2
+test_exchange_index=0
 prod_exchange_hostname="production"
 exchange = None
 
@@ -57,9 +57,15 @@ def write_to_exchange(exchange, obj):
 
 def read_from_exchange(exchange):
     while True:
-        msg = json.loads(exchange.readline())
+        msg = ""
+        try:
+            msg = json.loads(exchange.readline())
+        except:
+            continue
+        print(msg)
         lock_list()
         msg_list.append(msg)
+        print("in read:", msg_list)
         unlock_list()
 
 # ~~~~~============== MAIN LOOP ==============~~~~~
@@ -71,33 +77,31 @@ def add_item(symbol, dir, price, size):
     global order_id
     order_id += 1
     write_to_exchange(exchange, {"type": "add", "order_id": order_id, "symbol": symbol,
-                                 "dir": dir, "price" : price, "size": size})
+                                 "dir": dir, "price": price, "size": size})
 
 def main():
     global exchange
     exchange = connect()
     write_to_exchange(exchange, {"type": "hello", "team": team_name.upper()})
-    _thread.start_new_thread(read_from_exchange, (exchange))
+    _thread.start_new_thread(read_from_exchange, (exchange, ))
     #current_msg.append(read_from_exchange(exhange))
-    order_id = 0
     while True:
-        # hello_from_exchange = read_from_exchange(exchange)
-        #cmd = input()
-        #if (cmd == 's'):
-        #    break
-        order_id += 1
         lock_list()
-        #print(msg_list)
-        delta = 2
+        # print(msg_list)
         base = 1000
         for msg in msg_list:
             if "type" in msg and msg["type"] == "book" and msg['symbol'] == 'BOND':
+                min_seller = 1000000
+                for seller in msg['sell']:
+                    if seller[0] > min_seller and seller[0] > 1000:
+                        min_seller = seller[0]
+                    delta = (seller[0] - base - 0.01) / 2
                 for buy_info in msg['sell']:
                     if buy_info[0] >= base + delta:
                         add_item("BOND", "BUY", base + delta, buy_info[1])
                     else:
-                        add_item('BOND', 'BUY', buy_info[0], buy_info[1])
-                    add_item("BOND", "SELL", base + delta, buy_info[1])
+                        add_item("BOND", "BUY", buy_info[0], buy_info[1])
+                    add_item("BOND", "SELL", base, buy_info[1])
                 #for sell_info in msg['buy']:
                 #    if sell_info[0] <= base - delta:
                 #        add_item("BOND", "SELL", base - delta, sell_info[1])
